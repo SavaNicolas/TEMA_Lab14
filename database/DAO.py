@@ -32,9 +32,8 @@ class DAO():
         cursor = conn.cursor(dictionary=True)
         query = """
 select o.*
-from orders o, stores s
-where o.store_id = s.store_id
-and o.store_id = %s
+from orders o
+WHERE o.store_id = %s
 
     """
         cursor.execute(query, (storeid,))
@@ -55,7 +54,7 @@ and o.store_id = %s
         cursor = conn.cursor(dictionary=True)
         query = """
         select o.order_id as nodo1, o2.order_id as nodo2, SUM(oi1.quantity+oi2.quantity) as peso 
-from orders o, orders o2, order_items oi1, order_items oi2  
+from orders o,order_items oi1,  orders o2, order_items oi2  
 where o.store_id = o2.store_id 
 and o.store_id = %s
 and o.order_id = oi1.order_id 

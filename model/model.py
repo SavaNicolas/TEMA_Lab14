@@ -28,6 +28,7 @@ class Model:
 
     #creo grafo
     def buildGraph(self,store_id,k):
+        self._grafo.clear()
         self._nodi = DAO.getNodes(store_id) #ordini dello store selezionato
         #creo mappa di nodi
         for p in self._nodi:
@@ -44,12 +45,11 @@ class Model:
             self._grafo.add_edge(edge.nodo1, edge.nodo2, weight=edge.peso)
 
     def getDFSNodesFromTree(self,source):
-        tree=nx.bfs_tree(self._grafo,source)
+        tree=nx.dfs_tree(self._grafo,source)
         nodi=list(tree.nodes())
+        #CICLO SU TUTTI I NODI
         return nodi[1:]
         #ordine diverso da bfs perchè va sempre con l'adiacente
-
-
 
     def getNumNodi(self):
         return len(self._grafo.nodes())
@@ -73,10 +73,11 @@ class Model:
 
         vicini= self._grafo.neighbors(start) #mi trovo i vicino da iterare
         for v in vicini:
-            #posso aggiungerlo? si perchè start non ha predecessori
-            parziale.append(v)#questo per partire sempre da una situa in cui parziale ha 2 oggetti
-            self._ricorsione(parziale)
-            parziale.pop()
+            if v != start:
+                #posso aggiungerlo? si perchè start non ha predecessori
+                parziale.append(v)#questo per partire sempre da una situa in cui parziale ha 2 oggetti
+                self._ricorsione(parziale)
+                parziale.pop()
 
         return self._bestPath, self._bestScore
 
@@ -87,7 +88,7 @@ class Model:
             self._bestPath = copy.deepcopy(parziale)
 
         #verifico se posso aggiungere un nuovo nodo(dai vicini:in questo caso sono i successori)
-            #non deve essere in parziale il vicino dell'ultimo nodo aggiunto e l'arco deve essere minore di quello precedente
+            #VINCOLO: non deve essere in parziale il vicino dell'ultimo nodo aggiunto e l'arco deve essere minore di quello precedente
         for v in self._grafo.neighbors(parziale[-1]):
             if (v not in parziale and
                     self._grafo[parziale[-2]][parziale[-1]]["weight"] > self._grafo[parziale[-1]][v]["weight"]):
