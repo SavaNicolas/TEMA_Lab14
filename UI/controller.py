@@ -9,6 +9,7 @@ class Controller:
         self._model = model
 
         self._storeScelto = None
+        self._nodoScelto = None
 
 
     def handleCreaGrafo(self, e):
@@ -52,6 +53,11 @@ class Controller:
         # creo grafo
         self._model.buildGraph(store,k)
 
+        #posso riempire la tendina dei nodi
+        nodi = self._model.getNodes()
+        self.fillDDNodi(nodi)
+        self._view.update_page()
+
         # posso abilitare bottoni
 
         self._view._btnCerca.disabled = False
@@ -66,10 +72,39 @@ class Controller:
 
 
     def handleCerca(self, e):
-        pass
+
+        # prendo store dall'input
+        nodo = self._nodoScelto
+        # controlli
+        if nodo is None:
+            self._view.txt_result.controls.clear()
+            self._view.txt_result.controls.append(ft.Text("seleziona uno store!!!"))
+            self._view.update_page()
+            return
+
+        #chiamo algoritmo
+        listaNodi = self._model.getDFSNodesFromTree(nodo)
+        self._view.txt_result.controls.append(ft.Text(f"percorso più lungo partendo da: {nodo.order_id}"))
+        for nodo in listaNodi:
+            self._view.txt_result.controls.append(ft.Text(nodo))
+        self._view.update_page()
 
     def handleRicorsione(self, e):
-        pass
+        # prendo store dall'input
+        nodo = self._nodoScelto
+        # controlli
+        if nodo is None:
+            self._view.txt_result.controls.clear()
+            self._view.txt_result.controls.append(ft.Text("seleziona uno store!!!"))
+            self._view.update_page()
+            return
+
+        # chiamo algoritmo
+        path,peso=self._model.getBestPath(nodo)
+        self._view.txt_result.controls.append(ft.Text(f"Percorso con peso massimo partendo da {nodo.order_id}: {peso}"))
+        for nodo in path:
+            self._view.txt_result.controls.append(ft.Text(nodo))
+        self._view.update_page()
 
     def fillDDStore(self):
         for store in self.getAllNodes():  # sto appendendo al dropdown l'oggetto reatiler
@@ -84,6 +119,22 @@ class Controller:
         self._storeScelto = e.control.data  # l'abbiamo inizializzata a None
         # e.control.data è il risultato di onclick sopra
 
+    def fillDDNodi(self,nodi):
+        for ordine in nodi:  # sto appendendo al dropdown l'oggetto reatiler
+            self._view._ddNode.options.append(
+                ft.dropdown.Option(key=ordine.order_id,  # 🔑 Chiave univoca dell'opzione
+                                   text=ordine.order_id,  # 🏷️ Testo visibile nel menu a tendina
+                                   data=ordine,
+                                   # 📦 Oggetto completo, utile per accedere a tutti gli attributi dopo la selezione
+                                   on_click=self.read_nodi))  # salvati l'oggetto da qualche parte
+
+    def read_nodi(self, e):
+        self._nodoScelto = e.control.data  # l'abbiamo inizializzata a None
+        # e.control.data è il risultato di onclick sopra
+
     def getAllNodes(self):
         return self._model.getAllStores()
+
+    def getNodes(self):
+        return self._model.getNodes()
 
